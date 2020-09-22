@@ -17,7 +17,7 @@ public class Topdown_Locomotion : MonoBehaviour
     private Vector3 move_vector;
     //Rotation
     public bool Mouse_control;
-    [SerializeField]private GameObject mouse_cursor_prefab;
+    [SerializeField]private GameObject mouse_cursor_prefab = null;
     private GameObject mouse_cursor;
     private Plane mouse_plane;
     private Ray mouse_ray;
@@ -67,6 +67,7 @@ public class Topdown_Locomotion : MonoBehaviour
     void MoveCharacter(Vector3 input)
     {
         move_vector = input.x * cam_right + input.y * cam_forward;
+        Vector3.ClampMagnitude(move_vector,1.0f);
         move_vector *= Move_speed * Time.deltaTime;
         player_chara_controller.Move(move_vector);
     }
