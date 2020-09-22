@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
+using Cinemachine;
 
 public class Player_Slash_Control : MonoBehaviour
 {
@@ -13,8 +14,14 @@ public class Player_Slash_Control : MonoBehaviour
     }
     [Header("Basic")]
     public Slash_states Slash_state;
+    private Topdown_Locomotion topdown_locomotion;
+    private ThirdPerson_Locomotion thirdperson_locomotion;
     [Space]
     [Header("Aim")]
+    private Camera main_cam;
+    [SerializeField]private GameObject CM_topdown_cam;
+    [SerializeField]private GameObject CM_thirdperson_cam;
+    [SerializeField]private float Aim_time_scale;
     public GameObject Target;//Will change to enemy script
     [SerializeField]private Material target_material = null;
     private int aim_layerMask;
@@ -31,7 +38,10 @@ public class Player_Slash_Control : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        topdown_locomotion = GetComponent<Topdown_Locomotion>();
+        thirdperson_locomotion = GetComponent<ThirdPerson_Locomotion>();
         aim_layerMask = 1 << 6;
+        main_cam = Camera.main;
     }
 
     // Update is called once per frame
@@ -46,7 +56,7 @@ public class Player_Slash_Control : MonoBehaviour
                 }
             break;
             case Slash_states.Aim:
-                Physics.Raycast(transform.position, transform.TransformDirection(Vector3.forward), out aim_hit, aim_distance, aim_layerMask);
+                Physics.Raycast(main_cam.transform.position, main_cam.transform.forward, out aim_hit, aim_distance, aim_layerMask);
                 if(aim_hit.transform != null)
                 {
                     if(Target != aim_hit.transform.gameObject)
@@ -86,6 +96,12 @@ public class Player_Slash_Control : MonoBehaviour
     void EnterAiming()
     {
         Slash_state = Slash_states.Aim;
+        //player_locomotion.Move_speed = aim_move_speed;
+        Time.timeScale = Aim_time_scale;
+        CM_thirdperson_cam.SetActive(true);
+        CM_topdown_cam.SetActive(false);
+        topdown_locomotion.enabled=false;
+        thirdperson_locomotion.enabled=true;
     }
     void EnterSlashing()
     {
@@ -97,6 +113,7 @@ public class Player_Slash_Control : MonoBehaviour
         Vector3 dash_vector;
         Enemy_AI_Control enemy_script;
         Slash_state = Slash_states.Move;
+        Time.timeScale = 1.0f;
         if(Target!=null)
         {
             //Calculate target direction vector
@@ -129,6 +146,12 @@ public class Player_Slash_Control : MonoBehaviour
             target_material.DisableKeyword("_EMISSION");
             target_material=null;
             Target = null;
+
+            CM_thirdperson_cam.SetActive(false);
+            CM_topdown_cam.SetActive(transform);
+            topdown_locomotion.enabled=true;
+            thirdperson_locomotion.enabled=false;
         }
+
     }
 }
