@@ -12,6 +12,11 @@ public class ThirdPerson_Locomotion : MonoBehaviour
     //Movement
     private CharacterController player_chara_controller;
     private Camera main_cam;
+    private Vector3 chara_forward;
+    private Vector3 chara_right;
+    private Vector3 move_input;
+    private Vector3 move_vector;
+
     
     // Start is called before the first frame update
     void Start()
@@ -23,7 +28,25 @@ public class ThirdPerson_Locomotion : MonoBehaviour
 
     // Update is called once per frame
     private void FixedUpdate() {
-        RotateCharacter();
+        move_input.x = Input.GetAxis("Horizontal");
+        move_input.y = Input.GetAxis("Vertical");
+        if(Can_control)
+        {
+            MoveCharacter(move_input);
+            RotateCharacter();
+        }
+    }
+
+    void MoveCharacter(Vector3 input)
+    {
+        chara_forward = this.transform.forward;
+        chara_forward.y = 0;
+        chara_right = this.transform.right;
+        chara_right.y = 0;
+        move_vector = input.x * chara_right + input.y * chara_forward;
+        Vector3.ClampMagnitude(move_vector,1.0f);
+        move_vector *= Move_speed * Time.deltaTime;
+        player_chara_controller.Move(move_vector);
     }
 
     void RotateCharacter()

@@ -20,8 +20,9 @@ public class Player_Slash_Control : MonoBehaviour
     [Header("Aim")]
     private Camera main_cam;
     [SerializeField]private GameObject CM_topdown_cam;
-    [SerializeField]private GameObject CM_thirdperson_cam;
-    [SerializeField]private float Aim_time_scale;
+    [SerializeField]private GameObject CM_aiming_cam;
+    [SerializeField]private GameObject CM_slashing_cam;
+    [SerializeField]private float Slash_time_scale;
     public GameObject Target;//Will change to enemy script
     [SerializeField]private Material target_material = null;
     private int aim_layerMask;
@@ -55,37 +56,20 @@ public class Player_Slash_Control : MonoBehaviour
                     EnterAiming();
                 }
             break;
+
             case Slash_states.Aim:
-                Physics.Raycast(main_cam.transform.position, main_cam.transform.forward, out aim_hit, aim_distance, aim_layerMask);
-                if(aim_hit.transform != null)
-                {
-                    if(Target != aim_hit.transform.gameObject)
-                    {
-                        if(target_material!=null)
-                            target_material.DisableKeyword("_EMISSION");
-                        Target = aim_hit.transform.gameObject;
-                        target_material = Target.GetComponentInChildren<MeshRenderer>().material;
-                        target_material.EnableKeyword("_EMISSION");
-                    }
-                }
-                else
-                {
-                    if(Target != null)
-                    {
-                        target_material.DisableKeyword("_EMISSION");
-                        target_material=null;
-                    }
-                    Target = null;
-                }
+                HighlightTarget();
                 if(Input.GetButtonUp("Attack"))
                 {
                     //DEBUG Only
-                    UnleashSlash();
-                    //EnterSlashing();
+                    //UnleashSlash();
+                    EnterSlashing();
                 }
             break;
+
             case Slash_states.Slash:
-                if(Input.GetButtonUp("Attack"))
+                HighlightTarget();
+                if(Input.GetButtonDown("Attack"))
                 {
                     UnleashSlash();
                 }
@@ -97,16 +81,53 @@ public class Player_Slash_Control : MonoBehaviour
     {
         Slash_state = Slash_states.Aim;
         //player_locomotion.Move_speed = aim_move_speed;
-        Time.timeScale = Aim_time_scale;
-        CM_thirdperson_cam.SetActive(true);
+        
+        CM_aiming_cam.SetActive(true);
         CM_topdown_cam.SetActive(false);
         topdown_locomotion.enabled=false;
-        thirdperson_locomotion.enabled=true;
+        //thirdperson_locomotion.enabled=true;
+        StartCoroutine(RestoreControl());
     }
+
     void EnterSlashing()
     {
+        Time.timeScale = Slash_time_scale;
+        CM_aiming_cam.SetActive(false);
+        CM_slashing_cam.SetActive(true);
         Slash_state = Slash_states.Slash;
     }
+
+    void HighlightTarget()
+    {
+        Physics.Raycast(main_cam.transform.position, main_cam.transform.forward, out aim_hit, aim_distance, aim_layerMask);
+        if(aim_hit.transform != null)
+        {
+            if(Target != aim_hit.transform.gameObject)
+            {
+                if(target_material!=null)
+                    target_material.DisableKeyword("_EMISSION");
+                Target = aim_hit.transform.gameObject;
+                target_material = Target.GetComponentInChildren<MeshRenderer>().material;
+                target_material.EnableKeyword("_EMISSION");
+            }
+        }
+        else
+        {
+            if(Target != null)
+            {
+                target_material.DisableKeyword("_EMISSION");
+                target_material=null;
+            }
+            Target = null;
+        }
+    }
+
+    IEnumerator RestoreControl()
+    {
+        yield return new WaitForSecondsRealtime(1f);
+        thirdperson_locomotion.enabled=true;
+    }
+
     void UnleashSlash()
     {
         Vector3 target_vector;
@@ -147,9 +168,12 @@ public class Player_Slash_Control : MonoBehaviour
             target_material=null;
             Target = null;
 
-            CM_thirdperson_cam.SetActive(false);
-            CM_topdown_cam.SetActive(transform);
+            //Reset Camera to topdown
+            CM_slashing_cam.SetActive(false);
+            CM_aiming_cam.SetActive(false);
+            CM_topdown_cam.SetActive(true);
             topdown_locomotion.enabled=true;
+            //topdown_locomotion.mouse_cursor.transform.parent=null;
             thirdperson_locomotion.enabled=false;
         }
 

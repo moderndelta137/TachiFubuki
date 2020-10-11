@@ -18,7 +18,7 @@ public class Topdown_Locomotion : MonoBehaviour
     //Rotation
     public bool Mouse_control;
     [SerializeField]private GameObject mouse_cursor_prefab = null;
-    private GameObject mouse_cursor;
+    public GameObject mouse_cursor;
     private Plane mouse_plane;
     private Ray mouse_ray;
     private float mouse_plane_distance;
@@ -47,7 +47,7 @@ public class Topdown_Locomotion : MonoBehaviour
 
     void InitiateMouseControl()
     {
-        mouse_cursor=Instantiate(mouse_cursor_prefab,Vector3.zero,Quaternion.identity);
+        //mouse_cursor=Instantiate(mouse_cursor_prefab,Vector3.zero,Quaternion.identity);
         mouse_plane = new Plane(this.transform.up, this.transform.position);
         //mouse_cursor.SetActive(false);
     }
