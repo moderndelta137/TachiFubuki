@@ -27,7 +27,7 @@ public class ThirdPerson_Locomotion : MonoBehaviour
     }
 
     // Update is called once per frame
-    private void FixedUpdate() {
+    private void LateUpdate() {
         move_input.x = Input.GetAxis("Horizontal");
         move_input.y = Input.GetAxis("Vertical");
         if(Can_control)

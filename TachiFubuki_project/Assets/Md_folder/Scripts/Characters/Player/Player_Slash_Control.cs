@@ -27,7 +27,8 @@ public class Player_Slash_Control : MonoBehaviour
     [SerializeField]private Material target_material = null;
     private int aim_layerMask;
     private RaycastHit aim_hit;
-    [SerializeField]private float aim_distance = 0;
+    [SerializeField]private float aim_cast_radius = 0;
+    [SerializeField]private float aim_cast_distance = 0;
     [SerializeField]private float aim_transition_duration = 0;
     private WaitForSecondsRealtime aim_wait;
     [Space]
@@ -38,6 +39,9 @@ public class Player_Slash_Control : MonoBehaviour
     [Space]
     [Header("Slash")]
     [SerializeField]private int slash_damage = 0;
+    [SerializeField]private float slash_input_threshold = 0;
+    [SerializeField]private float slash_wait_duration = 0;
+    private WaitForSecondsRealtime slash_wait;
     // Start is called before the first frame update
     void Start()
     {
@@ -46,6 +50,7 @@ public class Player_Slash_Control : MonoBehaviour
         aim_layerMask = 1 << 6;
         main_cam = Camera.main;
         aim_wait = new WaitForSecondsRealtime(aim_transition_duration);
+        slash_wait = new WaitForSecondsRealtime(slash_wait_duration);
     }
 
     // Update is called once per frame
@@ -71,10 +76,7 @@ public class Player_Slash_Control : MonoBehaviour
 
             case Slash_states.Slash:
                 HighlightTarget();
-                if(Input.GetButtonDown("Attack"))
-                {
-                    StartCoroutine(UnleashSlash());
-                }
+                CalculateSlashInput();
             break;
         }
         
@@ -96,17 +98,17 @@ public class Player_Slash_Control : MonoBehaviour
         StartCoroutine(AimTransition());
     }
 
-    void EnterSlashing()
+        IEnumerator AimTransition()
     {
-        Time.timeScale = slash_time_scale;
-        CM_aiming_cam.gameObject.SetActive(false);
-        CM_slashing_cam.gameObject.SetActive(true);
-        Slash_state = Slash_states.Slash;
+        yield return aim_wait;
+        thirdperson_locomotion.enabled = true;
+        thirdperson_locomotion.Can_control = true;
     }
-
+    
     void HighlightTarget()
     {
-        Physics.Raycast(main_cam.transform.position, main_cam.transform.forward, out aim_hit, aim_distance, aim_layerMask);
+        Physics.SphereCast(main_cam.transform.position, aim_cast_radius, main_cam.transform.forward, out aim_hit, aim_cast_distance, aim_layerMask);
+        //Physics.Raycast(main_cam.transform.position, main_cam.transform.forward, out aim_hit, aim_cast_distance, aim_layerMask);
         if(aim_hit.transform != null)
         {
             if(Target != aim_hit.transform.gameObject)
@@ -129,10 +131,24 @@ public class Player_Slash_Control : MonoBehaviour
         }
     }
 
-    IEnumerator AimTransition()
+    void EnterSlashing()
     {
-        yield return aim_wait;
-        thirdperson_locomotion.enabled=true;
+        Time.timeScale = slash_time_scale;
+        CM_aiming_cam.gameObject.SetActive(false);
+        CM_slashing_cam.gameObject.SetActive(true);
+        Slash_state = Slash_states.Slash;
+    }
+
+    void CalculateSlashInput()
+    {
+        //Vector2 slash_input_origin;
+        Vector2 slash_input_direction;
+        slash_input_direction = Input.GetAxis("Mouse X")*Vector2.right + Input.GetAxis("Mouse Y")*Vector2.up;
+        Debug.Log(slash_input_direction);
+        if(slash_input_direction.magnitude>slash_input_threshold)
+        {
+            StartCoroutine(UnleashSlash());
+        }
     }
 
     IEnumerator UnleashSlash()
@@ -141,6 +157,7 @@ public class Player_Slash_Control : MonoBehaviour
         Vector3 dash_vector;
         Enemy_AI_Control enemy_script;
         thirdperson_locomotion.enabled=false;
+        thirdperson_locomotion.Can_control = false;
         Slash_state = Slash_states.Move;
         Time.timeScale = 1.0f;
         if(Target!=null)
@@ -169,9 +186,9 @@ public class Player_Slash_Control : MonoBehaviour
                 }
                 Debug.Log("Dash");
             }
-            Tween myTween = this.transform.DOMove(Target.transform.position + dash_vector, dash_duration);
+            this.transform.DOMove(Target.transform.position + dash_vector, dash_duration);
 
-            yield return myTween.WaitForCompletion();
+            yield return slash_wait;
 
             //Reset Target
             target_material.DisableKeyword("_EMISSION");

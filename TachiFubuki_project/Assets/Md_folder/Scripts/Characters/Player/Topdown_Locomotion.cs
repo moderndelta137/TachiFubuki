@@ -53,7 +53,7 @@ public class Topdown_Locomotion : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    void LateUpdate()
     {
         move_input.x = Input.GetAxis("Horizontal");
         move_input.y = Input.GetAxis("Vertical");
