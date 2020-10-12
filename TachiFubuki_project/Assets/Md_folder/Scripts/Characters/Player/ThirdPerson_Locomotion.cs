@@ -12,8 +12,8 @@ public class ThirdPerson_Locomotion : MonoBehaviour
     //Movement
     private CharacterController player_chara_controller;
     private Camera main_cam;
-    private Vector3 chara_forward;
-    private Vector3 chara_right;
+    private Vector3 cam_forward;
+    private Vector3 cam_right;
     private Vector3 move_input;
     private Vector3 move_vector;
 
@@ -39,11 +39,11 @@ public class ThirdPerson_Locomotion : MonoBehaviour
 
     void MoveCharacter(Vector3 input)
     {
-        chara_forward = this.transform.forward;
-        chara_forward.y = 0;
-        chara_right = this.transform.right;
-        chara_right.y = 0;
-        move_vector = input.x * chara_right + input.y * chara_forward;
+        cam_forward = main_cam.transform.forward;
+        cam_forward.y = 0;
+        cam_right = main_cam.transform.right;
+        cam_right.y = 0;
+        move_vector = input.x * cam_right + input.y * cam_forward;
         Vector3.ClampMagnitude(move_vector,1.0f);
         move_vector *= Move_speed * Time.deltaTime;
         player_chara_controller.Move(move_vector);

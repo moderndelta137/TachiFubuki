@@ -19,9 +19,9 @@ public class Player_Slash_Control : MonoBehaviour
     [Space]
     [Header("Aim")]
     private Camera main_cam;
-    [SerializeField]private GameObject CM_topdown_cam;
-    [SerializeField]private GameObject CM_aiming_cam;
-    [SerializeField]private GameObject CM_slashing_cam;
+    [SerializeField]private CinemachineVirtualCamera CM_topdown_cam;
+    [SerializeField]private CinemachineFreeLook CM_aiming_cam;
+    [SerializeField]private CinemachineFreeLook CM_slashing_cam;
     [SerializeField]private float Slash_time_scale;
     public GameObject Target;//Will change to enemy script
     [SerializeField]private Material target_material = null;
@@ -51,6 +51,7 @@ public class Player_Slash_Control : MonoBehaviour
         switch(Slash_state)
         {
             case Slash_states.Move:
+                AlineAimCam();
                 if(Input.GetButtonDown("Attack"))
                 {
                     EnterAiming();
@@ -75,15 +76,20 @@ public class Player_Slash_Control : MonoBehaviour
                 }
             break;
         }
+        
+    }
+
+    void AlineAimCam()
+    {
+        CM_aiming_cam.m_XAxis.Value= this.gameObject.transform.rotation.eulerAngles.y;
     }
 
     void EnterAiming()
     {
         Slash_state = Slash_states.Aim;
         //player_locomotion.Move_speed = aim_move_speed;
-        
-        CM_aiming_cam.SetActive(true);
-        CM_topdown_cam.SetActive(false);
+        CM_aiming_cam.gameObject.SetActive(true);
+        CM_topdown_cam.gameObject.SetActive(false);
         topdown_locomotion.enabled=false;
         //thirdperson_locomotion.enabled=true;
         StartCoroutine(RestoreControl());
@@ -92,8 +98,8 @@ public class Player_Slash_Control : MonoBehaviour
     void EnterSlashing()
     {
         Time.timeScale = Slash_time_scale;
-        CM_aiming_cam.SetActive(false);
-        CM_slashing_cam.SetActive(true);
+        CM_aiming_cam.gameObject.SetActive(false);
+        CM_slashing_cam.gameObject.SetActive(true);
         Slash_state = Slash_states.Slash;
     }
 
@@ -169,9 +175,9 @@ public class Player_Slash_Control : MonoBehaviour
             Target = null;
 
             //Reset Camera to topdown
-            CM_slashing_cam.SetActive(false);
-            CM_aiming_cam.SetActive(false);
-            CM_topdown_cam.SetActive(true);
+            CM_slashing_cam.gameObject.SetActive(false);
+            CM_aiming_cam.gameObject.SetActive(false);
+            CM_topdown_cam.gameObject.SetActive(true);
             topdown_locomotion.enabled=true;
             //topdown_locomotion.mouse_cursor.transform.parent=null;
             thirdperson_locomotion.enabled=false;
