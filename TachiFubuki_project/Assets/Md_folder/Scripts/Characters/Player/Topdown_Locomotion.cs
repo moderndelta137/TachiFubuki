@@ -47,7 +47,7 @@ public class Topdown_Locomotion : MonoBehaviour
 
     void InitiateMouseControl()
     {
-        //mouse_cursor=Instantiate(mouse_cursor_prefab,Vector3.zero,Quaternion.identity);
+        mouse_cursor=Instantiate(mouse_cursor_prefab,Vector3.zero,Quaternion.identity);
         mouse_plane = new Plane(this.transform.up, this.transform.position);
         //mouse_cursor.SetActive(false);
     }

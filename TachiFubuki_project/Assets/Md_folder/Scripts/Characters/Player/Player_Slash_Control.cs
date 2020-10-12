@@ -22,20 +22,22 @@ public class Player_Slash_Control : MonoBehaviour
     [SerializeField]private CinemachineVirtualCamera CM_topdown_cam;
     [SerializeField]private CinemachineFreeLook CM_aiming_cam;
     [SerializeField]private CinemachineFreeLook CM_slashing_cam;
-    [SerializeField]private float Slash_time_scale;
+    [SerializeField]private float slash_time_scale;
     public GameObject Target;//Will change to enemy script
     [SerializeField]private Material target_material = null;
     private int aim_layerMask;
     private RaycastHit aim_hit;
     [SerializeField]private float aim_distance = 0;
+    [SerializeField]private float aim_transition_duration = 0;
+    private WaitForSecondsRealtime aim_wait;
     [Space]
     [Header("Dash")]
-    [SerializeField]private float Dash_offset = 0;
-    [SerializeField]private float Dash_deflected_offset = 0;
-    [SerializeField]private float Dash_duration = 0;
+    [SerializeField]private float dash_offset = 0;
+    [SerializeField]private float dash_deflected_offset = 0;
+    [SerializeField]private float dash_duration = 0;
     [Space]
     [Header("Slash")]
-    [SerializeField]private int Slash_damage = 0;
+    [SerializeField]private int slash_damage = 0;
     // Start is called before the first frame update
     void Start()
     {
@@ -43,6 +45,7 @@ public class Player_Slash_Control : MonoBehaviour
         thirdperson_locomotion = GetComponent<ThirdPerson_Locomotion>();
         aim_layerMask = 1 << 6;
         main_cam = Camera.main;
+        aim_wait = new WaitForSecondsRealtime(aim_transition_duration);
     }
 
     // Update is called once per frame
@@ -62,8 +65,6 @@ public class Player_Slash_Control : MonoBehaviour
                 HighlightTarget();
                 if(Input.GetButtonUp("Attack"))
                 {
-                    //DEBUG Only
-                    //UnleashSlash();
                     EnterSlashing();
                 }
             break;
@@ -72,7 +73,7 @@ public class Player_Slash_Control : MonoBehaviour
                 HighlightTarget();
                 if(Input.GetButtonDown("Attack"))
                 {
-                    UnleashSlash();
+                    StartCoroutine(UnleashSlash());
                 }
             break;
         }
@@ -92,12 +93,12 @@ public class Player_Slash_Control : MonoBehaviour
         CM_topdown_cam.gameObject.SetActive(false);
         topdown_locomotion.enabled=false;
         //thirdperson_locomotion.enabled=true;
-        StartCoroutine(RestoreControl());
+        StartCoroutine(AimTransition());
     }
 
     void EnterSlashing()
     {
-        Time.timeScale = Slash_time_scale;
+        Time.timeScale = slash_time_scale;
         CM_aiming_cam.gameObject.SetActive(false);
         CM_slashing_cam.gameObject.SetActive(true);
         Slash_state = Slash_states.Slash;
@@ -128,17 +129,18 @@ public class Player_Slash_Control : MonoBehaviour
         }
     }
 
-    IEnumerator RestoreControl()
+    IEnumerator AimTransition()
     {
-        yield return new WaitForSecondsRealtime(1f);
+        yield return aim_wait;
         thirdperson_locomotion.enabled=true;
     }
 
-    void UnleashSlash()
+    IEnumerator UnleashSlash()
     {
         Vector3 target_vector;
         Vector3 dash_vector;
         Enemy_AI_Control enemy_script;
+        thirdperson_locomotion.enabled=false;
         Slash_state = Slash_states.Move;
         Time.timeScale = 1.0f;
         if(Target!=null)
@@ -158,16 +160,18 @@ public class Player_Slash_Control : MonoBehaviour
                 enemy_script = Target.GetComponent<Enemy_AI_Control>();
                 if(enemy_script.Attack_charging)
                 {
-                    Target.SendMessage("ApplyDamage",Slash_damage);
-                    dash_vector *= Dash_offset;
+                    Target.SendMessage("ApplyDamage",slash_damage);
+                    dash_vector *= dash_offset;
                 }
                 else
                 {
-                    dash_vector *= Dash_deflected_offset;
+                    dash_vector *= dash_deflected_offset;
                 }
+                Debug.Log("Dash");
             }
-            this.transform.DOMove(Target.transform.position + dash_vector, Dash_duration);
+            Tween myTween = this.transform.DOMove(Target.transform.position + dash_vector, dash_duration);
 
+            yield return myTween.WaitForCompletion();
 
             //Reset Target
             target_material.DisableKeyword("_EMISSION");
@@ -179,9 +183,15 @@ public class Player_Slash_Control : MonoBehaviour
             CM_aiming_cam.gameObject.SetActive(false);
             CM_topdown_cam.gameObject.SetActive(true);
             topdown_locomotion.enabled=true;
-            //topdown_locomotion.mouse_cursor.transform.parent=null;
             thirdperson_locomotion.enabled=false;
         }
-
     }
+
+    /*
+    IEnumerator DashTransition()
+    {
+        yield return aim_wait;
+        thirdperson_locomotion.enabled=true;
+    }
+    */
 }
