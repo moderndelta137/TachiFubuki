@@ -122,7 +122,7 @@ NavMeshSettings:
     preserveTilesOutsideBounds: 0
     debug:
       m_Flags: 0
-  m_NavMeshData: {fileID: 0}
+  m_NavMeshData: {fileID: 23800000, guid: 3c4902f5691441a4582b14ed38a64362, type: 2}
 --- !u!1 &45306623
 GameObject:
   m_ObjectHideFlags: 3
@@ -1072,7 +1072,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BindingMode: 4
-  m_FollowOffset: {x: 0, y: 0.03420319, z: -3.998222}
+  m_FollowOffset: {x: 0, y: -0.08295722, z: -3.989179}
   m_XDamping: 1
   m_YDamping: 1
   m_ZDamping: 1
@@ -1198,7 +1198,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BindingMode: 4
-  m_FollowOffset: {x: 0, y: 0.03420319, z: -3.998222}
+  m_FollowOffset: {x: 0, y: -0.08295722, z: -3.989179}
   m_XDamping: 1
   m_YDamping: 1
   m_ZDamping: 1
@@ -1324,7 +1324,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BindingMode: 4
-  m_FollowOffset: {x: 0, y: 0.1536382, z: -4.967501}
+  m_FollowOffset: {x: 0, y: -0.1003178, z: -4.984465}
   m_XDamping: 1
   m_YDamping: 1
   m_ZDamping: 1
@@ -1394,7 +1394,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 8
   m_IsActive: 1
 --- !u!65 &943208665
 BoxCollider:
@@ -1545,7 +1545,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BindingMode: 4
-  m_FollowOffset: {x: 0, y: 0.1536382, z: -4.967501}
+  m_FollowOffset: {x: 0, y: -0.1003178, z: -4.984465}
   m_XDamping: 1
   m_YDamping: 1
   m_ZDamping: 1
@@ -1907,7 +1907,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BindingMode: 4
-  m_FollowOffset: {x: 0, y: 0.03420319, z: -3.998222}
+  m_FollowOffset: {x: 0, y: -0.08295722, z: -3.989179}
   m_XDamping: 1
   m_YDamping: 1
   m_ZDamping: 1
@@ -2718,7 +2718,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BindingMode: 4
-  m_FollowOffset: {x: 0, y: 0.1536382, z: -4.967501}
+  m_FollowOffset: {x: 0, y: -0.1003178, z: -4.984465}
   m_XDamping: 1
   m_YDamping: 1
   m_ZDamping: 1

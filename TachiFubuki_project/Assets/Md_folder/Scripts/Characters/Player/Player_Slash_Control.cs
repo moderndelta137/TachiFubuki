@@ -77,6 +77,27 @@ public class Player_Slash_Control : MonoBehaviour
             case Slash_states.Slash:
                 HighlightTarget();
                 CalculateSlashInput();
+
+                //FOR DEBUG ONLY
+                if(Input.GetButtonDown("Cancel"))
+                {
+                    if(Target!= null){
+                    //Reset Target
+                    target_material.DisableKeyword("_EMISSION");
+                    target_material=null;
+                    Target = null;
+                    }
+
+                    //Reset Camera to topdown
+                    thirdperson_locomotion.enabled=false;
+                    thirdperson_locomotion.Can_control = false;
+                    Slash_state = Slash_states.Move;
+                    Time.timeScale = 1.0f;
+                    CM_slashing_cam.gameObject.SetActive(false);
+                    CM_aiming_cam.gameObject.SetActive(false);
+                    CM_topdown_cam.gameObject.SetActive(true);
+                    topdown_locomotion.enabled=true;
+                }
             break;
         }
         
