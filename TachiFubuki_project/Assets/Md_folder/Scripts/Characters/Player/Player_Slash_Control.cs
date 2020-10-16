@@ -216,12 +216,20 @@ public class Player_Slash_Control : MonoBehaviour
             target_material=null;
             Target = null;
 
+            if(Input.GetButton("Attack"))
+            {
+                EnterAiming();
+            }
+            else
+            {
+                CM_slashing_cam.gameObject.SetActive(false);
+                CM_aiming_cam.gameObject.SetActive(false);
+                CM_topdown_cam.gameObject.SetActive(true);
+                topdown_locomotion.enabled=true;
+                thirdperson_locomotion.enabled=false;
+            }
             //Reset Camera to topdown
-            CM_slashing_cam.gameObject.SetActive(false);
-            CM_aiming_cam.gameObject.SetActive(false);
-            CM_topdown_cam.gameObject.SetActive(true);
-            topdown_locomotion.enabled=true;
-            thirdperson_locomotion.enabled=false;
+
         }
     }
 
