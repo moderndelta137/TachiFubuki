@@ -8,8 +8,6 @@ public class ThirdPerson_Locomotion : MonoBehaviour
     public bool Can_control;
     public float Move_speed;
     public float Rotate_speed;
-
-    //Movement
     private CharacterController player_chara_controller;
     private Camera main_cam;
     private Vector3 cam_forward;
@@ -17,11 +15,15 @@ public class ThirdPerson_Locomotion : MonoBehaviour
     private Vector3 move_input;
     private Vector3 move_vector;
 
-    
+    [Space]
+    [Header("Animation")]
+    private Animator player_animator;
+
     // Start is called before the first frame update
     void Start()
     {
         player_chara_controller = GetComponent<CharacterController>();
+        player_animator = GetComponentInChildren<Animator>();
         main_cam = Camera.main;
         Can_control = true;
     }
@@ -45,8 +47,13 @@ public class ThirdPerson_Locomotion : MonoBehaviour
         cam_right.y = 0;
         move_vector = input.x * cam_right + input.y * cam_forward;
         Vector3.ClampMagnitude(move_vector,1.0f);
+        //Update Animation
+        player_animator.SetFloat("Move_speed",move_vector.magnitude);
+        //Move Character
         move_vector *= Move_speed * Time.deltaTime;
         player_chara_controller.Move(move_vector);
+
+
     }
 
     void RotateCharacter()

@@ -14,9 +14,9 @@ public class Enemy_AI_Control : MonoBehaviour
     public AI_states AI_state;
     [Header("Nav Agent")]
     private NavMeshAgent nav_agent;
-    [SerializeField] private bool can_move;
-    [SerializeField] private bool can_lockon;
-    [SerializeField] private float destination_tolerance;
+    //[SerializeField] private bool can_move = false;
+    //[SerializeField] private bool can_lockon;
+    [SerializeField] private float destination_tolerance = 0;
     private GameObject target;
     [Space]
     [Header("Animation")]
@@ -24,8 +24,8 @@ public class Enemy_AI_Control : MonoBehaviour
     //Attack duration is managed by animation
     [Space]
     [Header("Attack")]
-    [SerializeField] private int attack_damage;
-    [SerializeField] private Vector2 attack_cooldown_Range;
+    [SerializeField] private int attack_damage = 0;
+    [SerializeField] private Vector2 attack_cooldown_Range = Vector2.zero;
     private IEnumerator attack_coroutine;
     public bool Attack_charging;//Used for player to detect enemy charging state.
     private bool attacking;
@@ -34,7 +34,7 @@ public class Enemy_AI_Control : MonoBehaviour
     void Start()
     {
         nav_agent = GetComponent<NavMeshAgent>();
-        enemy_animator = GetComponent<Animator>();
+        enemy_animator = GetComponentInChildren<Animator>();
         //attack_coroutine = AttackCoroutine();
         //StartCoroutine(attack_coroutine);
         target = GameObject.Find("Player");
@@ -63,8 +63,7 @@ public class Enemy_AI_Control : MonoBehaviour
     void MoveAgent()
     {
         nav_agent.SetDestination(target.transform.position);
-        //Debug.Log(nav_agent.remainingDistance);
-        //Debug.Log(nav_agent.stoppingDistance);
+        enemy_animator.SetFloat("Move_speed",nav_agent.speed);
         if(nav_agent.remainingDistance - nav_agent.stoppingDistance <　destination_tolerance)
         {
             Debug.Log("stop");
@@ -74,14 +73,15 @@ public class Enemy_AI_Control : MonoBehaviour
 
     private IEnumerator AttackCoroutine()
     {
-        //while(true)
-        {
-            Debug.Log("Attack");
-            AI_state = AI_states.Attack;
-            nav_agent.enabled = false;
-            ChargeAttack();
-            yield return new WaitForSeconds(Random.Range(attack_cooldown_Range.x,attack_cooldown_Range.y));
-        }
+        enemy_animator.SetFloat("Move_speed",0);
+        Debug.Log("Attack");
+        AI_state = AI_states.Attack;
+        nav_agent.enabled = false;
+        ChargeAttack();
+        yield return new WaitForSeconds(Random.Range(attack_cooldown_Range.x,attack_cooldown_Range.y));
+        AI_state = AI_states.Move;
+        nav_agent.enabled = true;
+        nav_agent.SetDestination(target.transform.position);
     }
 
     private void ChargeAttack()
@@ -97,6 +97,7 @@ public class Enemy_AI_Control : MonoBehaviour
     public void UnleashAttack()
     {
         Attack_charging=false;
+
         Debug.Log("UnleashAttack");
     }
 
@@ -105,9 +106,7 @@ public class Enemy_AI_Control : MonoBehaviour
     {
 
         attacking=false;
-        AI_state = AI_states.Move;
-        nav_agent.enabled = true;
-        nav_agent.SetDestination(target.transform.position);
+
         Debug.Log("EndAttack");
     }
 }

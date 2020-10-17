@@ -19,10 +19,11 @@ public class Player_Slash_Control : MonoBehaviour
     [Space]
     [Header("Aim")]
     private Camera main_cam;
-    [SerializeField]private CinemachineVirtualCamera CM_topdown_cam;
-    [SerializeField]private CinemachineFreeLook CM_aiming_cam;
-    [SerializeField]private CinemachineFreeLook CM_slashing_cam;
-    [SerializeField]private float slash_time_scale;
+    [SerializeField]private CinemachineVirtualCamera CM_topdown_cam = null;
+    [SerializeField]private CinemachineTargetGroup CM_player_target_group = null;
+    [SerializeField]private CinemachineFreeLook CM_aiming_cam = null;
+    [SerializeField]private CinemachineFreeLook CM_slashing_cam = null;
+    [SerializeField]private float slash_time_scale = 1;
     public GameObject Target;//Will change to enemy script
     [SerializeField]private Material target_material = null;
     private int aim_layerMask;
@@ -42,11 +43,16 @@ public class Player_Slash_Control : MonoBehaviour
     [SerializeField]private float slash_input_threshold = 0;
     [SerializeField]private float slash_wait_duration = 0;
     private WaitForSecondsRealtime slash_wait;
+    [Space]
+    [Header("Animation")]
+    private Animator player_animator;
     // Start is called before the first frame update
     void Start()
     {
         topdown_locomotion = GetComponent<Topdown_Locomotion>();
         thirdperson_locomotion = GetComponent<ThirdPerson_Locomotion>();
+        player_animator = GetComponentInChildren<Animator>();
+        CM_player_target_group.m_Targets[1].target = topdown_locomotion.mouse_cursor.transform;
         aim_layerMask = 1 << 6;
         main_cam = Camera.main;
         aim_wait = new WaitForSecondsRealtime(aim_transition_duration);
@@ -97,6 +103,7 @@ public class Player_Slash_Control : MonoBehaviour
                     CM_aiming_cam.gameObject.SetActive(false);
                     CM_topdown_cam.gameObject.SetActive(true);
                     topdown_locomotion.enabled=true;
+                    player_animator.SetTrigger("Draw");
                 }
             break;
         }
@@ -105,17 +112,17 @@ public class Player_Slash_Control : MonoBehaviour
 
     void AlineAimCam()
     {
-        CM_aiming_cam.m_XAxis.Value= this.gameObject.transform.rotation.eulerAngles.y;
+        CM_aiming_cam.m_XAxis.Value = this.gameObject.transform.rotation.eulerAngles.y;
     }
 
     void EnterAiming()
     {
         Slash_state = Slash_states.Aim;
-        //player_locomotion.Move_speed = aim_move_speed;
         CM_aiming_cam.gameObject.SetActive(true);
+        CM_aiming_cam.m_YAxis.Value = 0.35f;
         CM_topdown_cam.gameObject.SetActive(false);
         topdown_locomotion.enabled=false;
-        //thirdperson_locomotion.enabled=true;
+        player_animator.SetTrigger("Sheath");
         StartCoroutine(AimTransition());
     }
 
@@ -128,16 +135,16 @@ public class Player_Slash_Control : MonoBehaviour
     
     void HighlightTarget()
     {
-        Physics.SphereCast(main_cam.transform.position, aim_cast_radius, main_cam.transform.forward, out aim_hit, aim_cast_distance, aim_layerMask);
-        //Physics.Raycast(main_cam.transform.position, main_cam.transform.forward, out aim_hit, aim_cast_distance, aim_layerMask);
+        Physics.SphereCast(this.transform.position, aim_cast_radius, main_cam.transform.forward, out aim_hit, aim_cast_distance, aim_layerMask);
         if(aim_hit.transform != null)
         {
             if(Target != aim_hit.transform.gameObject)
             {
+                //To be removed!!!!
                 if(target_material!=null)
                     target_material.DisableKeyword("_EMISSION");
                 Target = aim_hit.transform.gameObject;
-                target_material = Target.GetComponentInChildren<MeshRenderer>().material;
+                target_material = Target.GetComponentInChildren<SkinnedMeshRenderer>().material;
                 target_material.EnableKeyword("_EMISSION");
             }
         }
@@ -180,7 +187,8 @@ public class Player_Slash_Control : MonoBehaviour
         thirdperson_locomotion.enabled=false;
         thirdperson_locomotion.Can_control = false;
         Slash_state = Slash_states.Move;
-        Time.timeScale = 1.0f;
+        Time.timeScale = 0.1f;
+        player_animator.SetTrigger("Unleash");
         if(Target!=null)
         {
             //Calculate target direction vector
@@ -210,9 +218,10 @@ public class Player_Slash_Control : MonoBehaviour
             this.transform.DOMove(Target.transform.position + dash_vector, dash_duration);
 
             yield return slash_wait;
+            Time.timeScale = 1f;
 
             //Reset Target
-            target_material.DisableKeyword("_EMISSION");
+            //target_material.DisableKeyword("_EMISSION");
             target_material=null;
             Target = null;
 
@@ -227,6 +236,7 @@ public class Player_Slash_Control : MonoBehaviour
                 CM_topdown_cam.gameObject.SetActive(true);
                 topdown_locomotion.enabled=true;
                 thirdperson_locomotion.enabled=false;
+                player_animator.SetTrigger("Draw");
             }
             //Reset Camera to topdown
 
