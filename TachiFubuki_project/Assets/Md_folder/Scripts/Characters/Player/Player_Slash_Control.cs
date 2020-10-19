@@ -20,7 +20,7 @@ public class Player_Slash_Control : MonoBehaviour
     [Header("Aim")]
     private Camera main_cam;
     [SerializeField]private CinemachineVirtualCamera CM_topdown_cam = null;
-    [SerializeField]private CinemachineTargetGroup CM_player_target_group = null;
+    //[SerializeField]private CinemachineTargetGroup CM_player_target_group = null;
     [SerializeField]private CinemachineFreeLook CM_aiming_cam = null;
     [SerializeField]private CinemachineFreeLook CM_slashing_cam = null;
     [SerializeField]private float slash_time_scale = 1;
@@ -52,7 +52,7 @@ public class Player_Slash_Control : MonoBehaviour
         topdown_locomotion = GetComponent<Topdown_Locomotion>();
         thirdperson_locomotion = GetComponent<ThirdPerson_Locomotion>();
         player_animator = GetComponentInChildren<Animator>();
-        CM_player_target_group.m_Targets[1].target = topdown_locomotion.mouse_cursor.transform;
+        //CM_player_target_group.m_Targets[1].target = topdown_locomotion.mouse_cursor.transform;
         aim_layerMask = 1 << 6;
         main_cam = Camera.main;
         aim_wait = new WaitForSecondsRealtime(aim_transition_duration);

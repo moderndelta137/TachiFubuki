@@ -16,6 +16,7 @@ public class Topdown_Locomotion : MonoBehaviour
     private Vector3 cam_right;
     private Vector3 move_input;
     private Vector3 move_vector;
+    /*
     [Space]
     [Header("Rotate")]
     public bool Mouse_control;
@@ -27,6 +28,7 @@ public class Topdown_Locomotion : MonoBehaviour
     private Vector3 mouse_world_position;
     private Vector3 mouse_direction_vector;
     private Vector3 rotate_input;
+    */
     [Space]
     [Header("Animation")]
     private Animator player_animator;
@@ -39,7 +41,7 @@ public class Topdown_Locomotion : MonoBehaviour
         player_animator = GetComponentInChildren<Animator>();
         main_cam = Camera.main;
         Can_control = true;
-        Mouse_control = true;
+        //Mouse_control = true;
         //Assume camera doesn't rotate in topdown mode
         cam_forward = main_cam.transform.forward;
         cam_forward.y = 0;
@@ -48,21 +50,23 @@ public class Topdown_Locomotion : MonoBehaviour
         cam_right.y = 0;
         cam_right.Normalize();
 
-        InitiateMouseControl();
+        //InitiateMouseControl();
     }
 
+    /*
     void InitiateMouseControl()
     {
         mouse_cursor=Instantiate(mouse_cursor_prefab,Vector3.zero,Quaternion.identity);
         mouse_plane = new Plane(this.transform.up, this.transform.position);
         //mouse_cursor.SetActive(false);
     }
+    */
 
     // Update is called once per frame
     void LateUpdate()
     {
         move_input.x = Input.GetAxis("Horizontal");
-        move_input.y = Input.GetAxis("Vertical");
+        move_input.z = Input.GetAxis("Vertical");
         if(Can_control)
         {
             MoveCharacter(move_input);
@@ -72,10 +76,10 @@ public class Topdown_Locomotion : MonoBehaviour
 
     void MoveCharacter(Vector3 input)
     {
-        move_vector = input.x * cam_right + input.y * cam_forward;
+        move_vector = input.x * cam_right + input.z * cam_forward;
         Vector3.ClampMagnitude(move_vector,1.0f);
         //Update Animation
-        player_animator.SetFloat("Move_speed",move_vector.magnitude);
+        player_animator.SetFloat("Move_speed",move_input.magnitude);
         //Move Character
         move_vector *= Move_speed * Time.deltaTime;
         player_chara_controller.Move(move_vector);
@@ -85,6 +89,14 @@ public class Topdown_Locomotion : MonoBehaviour
 
     void RotateCharacter()
     {
+        //Rotate to move input direction
+        if(move_input.magnitude>0.1f)
+        {
+            this.transform.rotation = Quaternion.Slerp(this.transform.rotation, Quaternion.LookRotation(move_input), Rotate_speed*Time.deltaTime);
+        }
+
+        //Rotate to mouse direction
+        /*
         if(Mouse_control)
         {
                 mouse_ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -102,5 +114,6 @@ public class Topdown_Locomotion : MonoBehaviour
         {
             
         }
+        */
     }
 }
