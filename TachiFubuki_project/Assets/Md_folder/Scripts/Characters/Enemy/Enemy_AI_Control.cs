@@ -66,7 +66,6 @@ public class Enemy_AI_Control : MonoBehaviour
         enemy_animator.SetFloat("Move_speed",nav_agent.speed);
         if(nav_agent.remainingDistance - nav_agent.stoppingDistance <　destination_tolerance)
         {
-            Debug.Log("stop");
             StartCoroutine(AttackCoroutine());
         }
     }
@@ -74,7 +73,6 @@ public class Enemy_AI_Control : MonoBehaviour
     private IEnumerator AttackCoroutine()
     {
         enemy_animator.SetFloat("Move_speed",0);
-        Debug.Log("Attack");
         AI_state = AI_states.Attack;
         nav_agent.enabled = false;
         ChargeAttack();
@@ -90,7 +88,6 @@ public class Enemy_AI_Control : MonoBehaviour
         attacking=true;
         Attack_charging=true;
         enemy_animator.SetTrigger("Attack");
-        Debug.Log("ChargeAttack");
     }
 
     //Animation Event
@@ -98,7 +95,6 @@ public class Enemy_AI_Control : MonoBehaviour
     {
         Attack_charging=false;
 
-        Debug.Log("UnleashAttack");
     }
 
     //Animation Event
@@ -107,6 +103,5 @@ public class Enemy_AI_Control : MonoBehaviour
 
         attacking=false;
 
-        Debug.Log("EndAttack");
     }
 }
