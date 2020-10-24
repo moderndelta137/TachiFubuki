@@ -26,9 +26,9 @@ public class Enemy_AI_Control : MonoBehaviour
     [Header("Attack")]
     [SerializeField] private int attack_damage = 0;
     [SerializeField] private Vector2 attack_cooldown_Range = Vector2.zero;
-    private IEnumerator attack_coroutine;
-    public bool Attack_charging;//Used for player to detect enemy charging state.
-    private bool attacking;
+    private IEnumerator attack_coroutine = null;
+    public bool Attack_charging = false;//Used for player to detect enemy charging state.
+    private bool attacking = false;
 
     // Start is called before the first frame update
     void Start()

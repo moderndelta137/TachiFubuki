@@ -172,7 +172,9 @@ public class Player_Slash_Control : MonoBehaviour {
         Vector3 target_vector;
         Vector3 dash_vector;
         Enemy_AI_Control enemy_script;
+        bool deflected;
         float slash_direction;
+        deflected = false;
         thirdperson_locomotion.enabled = false;
         thirdperson_locomotion.Can_control = false;
         Slash_state = Slash_states.Move;
@@ -192,8 +194,8 @@ public class Player_Slash_Control : MonoBehaviour {
         DEBUG_BOXCAST_BOX.transform.rotation =  Quaternion.AngleAxis (slash_direction, main_cam.transform.forward);
         foreach(RaycastHit part in bodyparts_hits )
         {
-            part.collider.GetComponentInChildren<MeshRenderer>().material.EnableKeyword ("_EMISSION");
-            Debug.Log(part.collider.gameObject.name);
+            //part.collider.GetComponentInChildren<MeshRenderer>().material.EnableKeyword ("_EMISSION");
+            //Debug.Log(part.collider.gameObject.name);
         }
         
 
@@ -210,11 +212,34 @@ public class Player_Slash_Control : MonoBehaviour {
             if (Target.tag == "Enemy") {
                 enemy_script = Target.GetComponent<Enemy_AI_Control> ();
                 if (enemy_script.Attack_charging) {
-                    Target.SendMessage ("ApplyDamage", slash_damage);
-                    dash_vector *= dash_offset;
+                    //Target.SendMessage ("ApplyDamage", slash_damage);
+                    foreach(RaycastHit part in bodyparts_hits )
+                    {
+                        Debug.Log(part.collider.gameObject.name);
+                        if(!part.collider.gameObject.GetComponent<Enemy_Part_Damage_Manager>().isSteel)
+                        {
+                            part.collider.gameObject.SendMessage ("ApplyDamage", slash_damage);
+                            Debug.Log("Damage");
+                        }
+                        else
+                        {
+                            deflected = true;
+                            Debug.Log("Steel");
+                            break;
+                        }
+                        //part.collider.GetComponentInChildren<MeshRenderer>().material.EnableKeyword ("_EMISSION");
+                    }
                 } else {
-                    dash_vector *= dash_deflected_offset;
+                    deflected = true;
                 }
+            }
+            if(!deflected)
+            {
+                dash_vector *= dash_offset;
+            }
+            else
+            {
+                dash_vector *= dash_deflected_offset;
             }
             this.transform.DOMove (Target.transform.position + dash_vector, dash_duration);
 
