@@ -130,7 +130,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Can_control: 1
   Move_speed: 1
-  Rotate_speed: 20
+  Rotate_speed: 30
 --- !u!114 &1673953325960912729
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -155,10 +155,15 @@ MonoBehaviour:
   aim_transition_duration: 0.5
   dash_offset: 5
   dash_deflected_offset: -2
-  dash_duration: 0.2
+  dash_duration: 0.5
   slash_damage: 1
   slash_input_threshold: 1.3
-  slash_wait_duration: 1.5
+  slash_wait_duration: 1.2
+  Target_bodyparts: []
+  bodyparts_cast_offset: 3.5
+  bodyparts_cast_size: {x: 0.01, y: 2, z: 0.1}
+  bodyparts_cast_pitch: 0
+  DEBUG_BOXCAST_BOX: {fileID: 0}
 --- !u!1 &6488920849316751628
 GameObject:
   m_ObjectHideFlags: 0

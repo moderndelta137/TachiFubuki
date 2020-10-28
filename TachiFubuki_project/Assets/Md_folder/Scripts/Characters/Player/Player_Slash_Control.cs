@@ -46,6 +46,7 @@ public class Player_Slash_Control : MonoBehaviour {
     public GameObject[] Target_bodyparts;
     private int bodyparts_layerMask;
     private RaycastHit[] bodyparts_hits;
+    [SerializeField] private float bodyparts_cast_offset = 0;
     [SerializeField] private Vector3 bodyparts_cast_size = Vector3.zero;
     [SerializeField] private float bodyparts_cast_pitch = 0;
     public GameObject DEBUG_BOXCAST_BOX;
@@ -184,12 +185,10 @@ public class Player_Slash_Control : MonoBehaviour {
         slash_direction = Vector2.SignedAngle (Vector2.up, input_direction);
         player_animator.SetFloat ("Slash_direction", slash_direction / 180f); //Degree to normalized
 
-        //Play slash animation
-        player_animator.SetTrigger ("Unleash");
 
         //Boxcast to check enenmy bodyparts in the slash trajectory
-        bodyparts_hits = Physics.BoxCastAll (main_cam.transform.position, bodyparts_cast_size, main_cam.transform.forward, Quaternion.AngleAxis (slash_direction, main_cam.transform.forward), aim_cast_distance, bodyparts_layerMask);
-        DEBUG_BOXCAST_BOX.transform.position = main_cam.transform.position;
+        bodyparts_hits = Physics.BoxCastAll (main_cam.transform.position + main_cam.transform.forward * bodyparts_cast_offset, bodyparts_cast_size, main_cam.transform.forward, Quaternion.AngleAxis (slash_direction, main_cam.transform.forward), aim_cast_distance, bodyparts_layerMask);
+        DEBUG_BOXCAST_BOX.transform.position = main_cam.transform.position + main_cam.transform.forward * bodyparts_cast_offset;
         DEBUG_BOXCAST_BOX.transform.localScale = bodyparts_cast_size;
         DEBUG_BOXCAST_BOX.transform.rotation =  Quaternion.AngleAxis (slash_direction, main_cam.transform.forward);
         foreach(RaycastHit part in bodyparts_hits )
@@ -207,6 +206,14 @@ public class Player_Slash_Control : MonoBehaviour {
             dash_vector = target_vector;
             dash_vector.y = 0;
             dash_vector.Normalize ();
+
+            CM_slashing_cam.Follow = null;
+            //Dash in front of the enemy
+            Tween myTween = this.transform.DOMove (Target.transform.position + dash_vector*dash_deflected_offset, dash_duration).SetUpdate(true);
+            yield return myTween.WaitForCompletion();
+
+            //Play slash animation
+            player_animator.SetTrigger ("Unleash");
 
             //Apply Damage
             if (Target.tag == "Enemy") {
@@ -235,15 +242,21 @@ public class Player_Slash_Control : MonoBehaviour {
             }
             if(!deflected)
             {
+                //Not deflected
+                dash_vector.Normalize ();
                 dash_vector *= dash_offset;
+                myTween = this.transform.DOMove (Target.transform.position + dash_vector, dash_duration).SetUpdate(true);
+                yield return myTween.WaitForCompletion();
             }
             else
             {
-                dash_vector *= dash_deflected_offset;
+                //Deflected
+                player_animator.SetTrigger ("Deflected");
             }
-            this.transform.DOMove (Target.transform.position + dash_vector, dash_duration);
+
 
             yield return slash_wait;
+            CM_slashing_cam.Follow = this.gameObject.transform;
             Time.timeScale = 1f;
 
             //Reset Target
@@ -251,9 +264,12 @@ public class Player_Slash_Control : MonoBehaviour {
             target_material = null;
             Target = null;
 
-            if (Input.GetButton ("Attack")) {
+            if (Input.GetButton ("Attack")) 
+            {
                 EnterAiming ();
-            } else {
+            } 
+            else 
+            {
                 CM_slashing_cam.gameObject.SetActive (false);
                 CM_aiming_cam.gameObject.SetActive (false);
                 CM_topdown_cam.gameObject.SetActive (true);
