@@ -51,6 +51,14 @@ public class Player_Slash_Control : MonoBehaviour {
     [SerializeField] private float bodyparts_cast_pitch = 0;
     public GameObject DEBUG_BOXCAST_BOX;
     [Space]
+    [Header("Dodge")]
+    [SerializeField] private float dodge_distance;
+    [SerializeField] private float dodge_duration;
+    private Vector3 dodge_direction;
+    [Space]
+    [Header("NormalAttack")]
+    [SerializeField] private float normal_attack_duration;
+    [Space]
     [Header ("Animation")]
     private Animator player_animator;
     // Start is called before the first frame update
@@ -71,14 +79,24 @@ public class Player_Slash_Control : MonoBehaviour {
         switch (Slash_state) {
             case Slash_states.Move:
                 AlineAimCam ();
-                if (Input.GetButtonDown ("Attack")) {
+                if (Input.GetButtonDown ("Attack")) 
+                {
+                    StartCoroutine(StartNormalAttack());
+                }
+                if (Input.GetButtonDown ("Charge")) 
+                {
                     EnterAiming ();
+                }
+                if (Input.GetButtonDown("Dodge"))
+                {
+                   StartCoroutine(StartDodge());
                 }
                 break;
 
             case Slash_states.Aim:
                 HighlightTarget ();
-                if (Input.GetButtonUp ("Attack")) {
+                if (Input.GetButtonUp ("Charge")) 
+                {
                     EnterSlashing ();
                 }
                 break;
@@ -88,7 +106,8 @@ public class Player_Slash_Control : MonoBehaviour {
                 CalculateSlashInput ();
 
                 //FOR DEBUG ONLY
-                if (Input.GetButtonDown ("Cancel")) {
+                if (Input.GetButtonDown ("Cancel")) 
+                {
                     if (Target != null) {
                         //Reset Target
                         //target_material.DisableKeyword("_EMISSION");
@@ -264,7 +283,7 @@ public class Player_Slash_Control : MonoBehaviour {
             target_material = null;
             Target = null;
 
-            if (Input.GetButton ("Attack")) 
+            if (Input.GetButton ("Charge")) 
             {
                 EnterAiming ();
             } 
@@ -282,4 +301,37 @@ public class Player_Slash_Control : MonoBehaviour {
         }
     }
 
+    IEnumerator StartDodge()
+    {
+        topdown_locomotion.Can_control = false;
+        thirdperson_locomotion.Can_control = false;
+
+        dodge_direction.x = Input.GetAxis("Horizontal");
+        dodge_direction.z = Input.GetAxis("Vertical");
+        if(dodge_direction.magnitude<0.1)
+        {
+            dodge_direction = -this.transform.forward;
+        }
+        dodge_direction.Normalize();
+        player_animator.SetFloat("Input_X_relative",Vector3.Dot(dodge_direction,this.transform.forward));
+        player_animator.SetFloat("Input_Y_relative",Vector3.Dot(dodge_direction,this.transform.right));
+        player_animator.SetTrigger("Dodge");
+        Tween myTween = this.transform.DOMove(this.transform.position+dodge_direction*dodge_distance,dodge_duration);
+        yield return myTween.WaitForCompletion();
+
+        topdown_locomotion.Can_control = true;
+        thirdperson_locomotion.Can_control = true;
+    }
+
+    IEnumerator StartNormalAttack()
+    {
+        topdown_locomotion.Can_control = false;
+        thirdperson_locomotion.Can_control = false;
+
+        player_animator.SetTrigger("Normal_attack");
+        yield return new WaitForSeconds(normal_attack_duration); //TODO remove the "new"
+
+        topdown_locomotion.Can_control = true;
+        thirdperson_locomotion.Can_control = true;
+    }
 }
