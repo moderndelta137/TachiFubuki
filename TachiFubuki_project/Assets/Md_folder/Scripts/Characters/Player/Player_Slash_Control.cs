@@ -56,22 +56,37 @@ public class Player_Slash_Control : MonoBehaviour {
     [SerializeField] private float dodge_duration;
     private Vector3 dodge_direction;
     [Space]
+    [Header ("Aim")]
+    [SerializeField] private int max_sharpness;
+    public int Sharpness;
+    [SerializeField] private int flesh_sharpness_damage;
+    [SerializeField] private int steel_sharpness_damage;
+    [Space]
     [Header("NormalAttack")]
     [SerializeField] private float normal_attack_duration;
     [Space]
     [Header ("Animation")]
     private Animator player_animator;
+    [Space]
+    [Header ("UI")]
+    public GameObject UI_root;
+    private Sharpness_UI sharpness_UI_script;
     // Start is called before the first frame update
     void Start () {
         topdown_locomotion = GetComponent<Topdown_Locomotion> ();
         thirdperson_locomotion = GetComponent<ThirdPerson_Locomotion> ();
         player_animator = GetComponentInChildren<Animator> ();
+        sharpness_UI_script = UI_root.GetComponentInChildren<Sharpness_UI>();
         //CM_player_target_group.m_Targets[1].target = topdown_locomotion.mouse_cursor.transform;
         aim_layerMask = 1 << 6;
         bodyparts_layerMask = 1 << 7; //DEBUG using enemy layer for now
         main_cam = Camera.main;
         aim_wait = new WaitForSecondsRealtime (aim_transition_duration);
         slash_wait = new WaitForSecondsRealtime (slash_wait_duration);
+
+        Sharpness = max_sharpness;
+        sharpness_UI_script.UpdateMaxSharpness(max_sharpness);
+        sharpness_UI_script.UpdateSharpness(Sharpness);
     }
 
     // Update is called once per frame
@@ -242,7 +257,7 @@ public class Player_Slash_Control : MonoBehaviour {
                     foreach(RaycastHit part in bodyparts_hits )
                     {
                         Debug.Log(part.collider.gameObject.name);
-                        if(!part.collider.gameObject.GetComponent<Enemy_Part_Damage_Manager>().isSteel)
+                        if(!part.collider.gameObject.GetComponent<Bodypart_Damage_Manager>().isSteel)
                         {
                             part.collider.gameObject.SendMessage ("ApplyDamage", slash_damage);
                             Debug.Log("Damage");
@@ -333,5 +348,22 @@ public class Player_Slash_Control : MonoBehaviour {
 
         topdown_locomotion.Can_control = true;
         thirdperson_locomotion.Can_control = true;
+    }
+
+    public void ReduceSharpness(bool isSteel)
+    {
+        if(isSteel)
+        {
+            //Hit steel
+            Sharpness-=steel_sharpness_damage;
+            player_animator.SetTrigger("Deflected");
+        }
+        else
+        {
+            //Hit flesh
+            Sharpness-=flesh_sharpness_damage;
+        }
+        Mathf.Clamp(Sharpness,0,max_sharpness);
+        sharpness_UI_script.UpdateSharpness(Sharpness);
     }
 }

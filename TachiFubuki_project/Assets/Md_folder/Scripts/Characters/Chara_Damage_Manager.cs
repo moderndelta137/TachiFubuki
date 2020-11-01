@@ -21,6 +21,7 @@ public class Chara_Damage_Manager : MonoBehaviour
     void ApplyDamage(int value)
     {
         HP -= value;
+        Debug.Log(HP);
         if(HP<=0)
         {
             Dead();
