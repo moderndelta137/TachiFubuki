@@ -8,7 +8,7 @@ public class Bodypart_Damage_Manager : MonoBehaviour
     public bool isWeakness;
     private Chara_Damage_Manager parent_damage_manager;
     // Start is called before the first frame update
-    void Start()
+    private void Awake () 
     {
         parent_damage_manager = GetComponentInParent<Chara_Damage_Manager>();
     }

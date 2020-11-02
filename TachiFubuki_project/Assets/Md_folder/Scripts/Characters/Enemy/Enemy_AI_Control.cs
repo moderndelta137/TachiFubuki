@@ -30,16 +30,16 @@ public class Enemy_AI_Control : MonoBehaviour
     public bool Attack_charging = false;//Used for player to detect enemy charging state.
     private bool attacking = false;
 
-    // Start is called before the first frame update
-    void Start()
+    private void Awake () 
     {
         nav_agent = GetComponent<NavMeshAgent>();
         enemy_animator = GetComponentInChildren<Animator>();
-        //attack_coroutine = AttackCoroutine();
-        //StartCoroutine(attack_coroutine);
+    }
+    // Start is called before the first frame update
+    void Start()
+    {
         target = GameObject.Find("Player");
         nav_agent.SetDestination(target.transform.position);
-        //AI_state = AI_states.Idle;
         AI_state = AI_states.Move;
     }
 

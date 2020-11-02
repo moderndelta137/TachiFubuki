@@ -19,7 +19,6 @@ public class Player_Slash_Control : MonoBehaviour {
     [Header ("Aim")]
     private Camera main_cam;
     [SerializeField] private CinemachineVirtualCamera CM_topdown_cam = null;
-    //[SerializeField]private CinemachineTargetGroup CM_player_target_group = null;
     [SerializeField] private CinemachineFreeLook CM_aiming_cam = null;
     [SerializeField] private CinemachineFreeLook CM_slashing_cam = null;
     [SerializeField] private float slash_time_scale = 1;
@@ -35,7 +34,7 @@ public class Player_Slash_Control : MonoBehaviour {
     [Header ("Dash")]
     [SerializeField] private float dash_offset = 0;
     [SerializeField] private float dash_deflected_offset = 0;
-    [SerializeField] private float dash_duration = 0;
+    [SerializeField] private float dash_speed = 0;
     [Space]
     [Header ("Slash")]
     [SerializeField] private int slash_damage = 0;
@@ -51,19 +50,19 @@ public class Player_Slash_Control : MonoBehaviour {
     [SerializeField] private float bodyparts_cast_pitch = 0;
     public GameObject DEBUG_BOXCAST_BOX;
     [Space]
-    [Header("Dodge")]
-    [SerializeField] private float dodge_distance;
-    [SerializeField] private float dodge_duration;
+    [Header ("Dodge")]
+    [SerializeField] private float dodge_distance = 0;
+    [SerializeField] private float dodge_duration = 0;
     private Vector3 dodge_direction;
     [Space]
     [Header ("Aim")]
-    [SerializeField] private int max_sharpness;
+    [SerializeField] private int max_sharpness = 0;
     public int Sharpness;
-    [SerializeField] private int flesh_sharpness_damage;
-    [SerializeField] private int steel_sharpness_damage;
+    [SerializeField] private int flesh_sharpness_damage = 0;
+    [SerializeField] private int steel_sharpness_damage = 0;
     [Space]
-    [Header("NormalAttack")]
-    [SerializeField] private float normal_attack_duration;
+    [Header ("NormalAttack")]
+    [SerializeField] private float normal_attack_duration = 0;
     [Space]
     [Header ("Animation")]
     private Animator player_animator;
@@ -71,22 +70,24 @@ public class Player_Slash_Control : MonoBehaviour {
     [Header ("UI")]
     public GameObject UI_root;
     private Sharpness_UI sharpness_UI_script;
-    // Start is called before the first frame update
-    void Start () {
+
+    private void Awake () {
         topdown_locomotion = GetComponent<Topdown_Locomotion> ();
         thirdperson_locomotion = GetComponent<ThirdPerson_Locomotion> ();
         player_animator = GetComponentInChildren<Animator> ();
-        sharpness_UI_script = UI_root.GetComponentInChildren<Sharpness_UI>();
-        //CM_player_target_group.m_Targets[1].target = topdown_locomotion.mouse_cursor.transform;
+        sharpness_UI_script = UI_root.GetComponentInChildren<Sharpness_UI> ();
         aim_layerMask = 1 << 6;
         bodyparts_layerMask = 1 << 7; //DEBUG using enemy layer for now
         main_cam = Camera.main;
+    }
+
+    // Start is called before the first frame update
+    void Start () {
         aim_wait = new WaitForSecondsRealtime (aim_transition_duration);
         slash_wait = new WaitForSecondsRealtime (slash_wait_duration);
-
         Sharpness = max_sharpness;
-        sharpness_UI_script.UpdateMaxSharpness(max_sharpness);
-        sharpness_UI_script.UpdateSharpness(Sharpness);
+        sharpness_UI_script.UpdateMaxSharpness (max_sharpness);
+        sharpness_UI_script.UpdateSharpness (Sharpness);
     }
 
     // Update is called once per frame
@@ -94,25 +95,24 @@ public class Player_Slash_Control : MonoBehaviour {
         switch (Slash_state) {
             case Slash_states.Move:
                 AlineAimCam ();
-                if (Input.GetButtonDown ("Attack")) 
-                {
-                    StartCoroutine(StartNormalAttack());
+                if (Input.GetButtonDown ("Attack")) {
+                    StartCoroutine (StartNormalAttack ());
                 }
-                if (Input.GetButtonDown ("Charge")) 
-                {
+                if (Input.GetButtonDown ("Charge")) {
                     EnterAiming ();
                 }
-                if (Input.GetButtonDown("Dodge"))
-                {
-                   StartCoroutine(StartDodge());
+                if (Input.GetButtonDown ("Dodge")) {
+                    StartCoroutine (StartDodge ());
                 }
                 break;
 
             case Slash_states.Aim:
                 HighlightTarget ();
-                if (Input.GetButtonUp ("Charge")) 
-                {
+                if (Input.GetButtonUp ("Charge")) {
                     EnterSlashing ();
+                }
+                if (Input.GetButtonDown ("Attack")) {
+                    CancelSlash ();
                 }
                 break;
 
@@ -120,30 +120,32 @@ public class Player_Slash_Control : MonoBehaviour {
                 HighlightTarget ();
                 CalculateSlashInput ();
 
-                //FOR DEBUG ONLY
-                if (Input.GetButtonDown ("Cancel")) 
-                {
-                    if (Target != null) {
-                        //Reset Target
-                        //target_material.DisableKeyword("_EMISSION");
-                        target_material = null;
-                        Target = null;
-                    }
-
-                    //Reset Camera to topdown
-                    thirdperson_locomotion.enabled = false;
-                    thirdperson_locomotion.Can_control = false;
-                    Slash_state = Slash_states.Move;
-                    Time.timeScale = 1.0f;
-                    CM_slashing_cam.gameObject.SetActive (false);
-                    CM_aiming_cam.gameObject.SetActive (false);
-                    CM_topdown_cam.gameObject.SetActive (true);
-                    topdown_locomotion.enabled = true;
-                    player_animator.SetTrigger ("Draw");
+                if (Input.GetButtonDown ("Attack")) {
+                    CancelSlash ();
                 }
                 break;
         }
 
+    }
+
+    private void CancelSlash () {
+        if (Target != null) {
+            //Reset Target
+            //target_material.DisableKeyword("_EMISSION");
+            target_material = null;
+            Target = null;
+        }
+
+        //Reset Camera to topdown
+        thirdperson_locomotion.enabled = false;
+        thirdperson_locomotion.Can_control = false;
+        Slash_state = Slash_states.Move;
+        Time.timeScale = 1.0f;
+        CM_slashing_cam.gameObject.SetActive (false);
+        CM_aiming_cam.gameObject.SetActive (false);
+        CM_topdown_cam.gameObject.SetActive (true);
+        topdown_locomotion.enabled = true;
+        player_animator.SetTrigger ("Draw");
     }
 
     void AlineAimCam () {
@@ -158,6 +160,7 @@ public class Player_Slash_Control : MonoBehaviour {
         topdown_locomotion.enabled = false;
         player_animator.SetTrigger ("Sheath");
         StartCoroutine (AimTransition ());
+        RechargeSharpness ();
     }
 
     IEnumerator AimTransition () {
@@ -219,20 +222,19 @@ public class Player_Slash_Control : MonoBehaviour {
         slash_direction = Vector2.SignedAngle (Vector2.up, input_direction);
         player_animator.SetFloat ("Slash_direction", slash_direction / 180f); //Degree to normalized
 
-
         //Boxcast to check enenmy bodyparts in the slash trajectory
         bodyparts_hits = Physics.BoxCastAll (main_cam.transform.position + main_cam.transform.forward * bodyparts_cast_offset, bodyparts_cast_size, main_cam.transform.forward, Quaternion.AngleAxis (slash_direction, main_cam.transform.forward), aim_cast_distance, bodyparts_layerMask);
         DEBUG_BOXCAST_BOX.transform.position = main_cam.transform.position + main_cam.transform.forward * bodyparts_cast_offset;
         DEBUG_BOXCAST_BOX.transform.localScale = bodyparts_cast_size;
-        DEBUG_BOXCAST_BOX.transform.rotation =  Quaternion.AngleAxis (slash_direction, main_cam.transform.forward);
-        foreach(RaycastHit part in bodyparts_hits )
-        {
+        DEBUG_BOXCAST_BOX.transform.rotation = Quaternion.AngleAxis (slash_direction, main_cam.transform.forward);
+        foreach (RaycastHit part in bodyparts_hits) {
             //part.collider.GetComponentInChildren<MeshRenderer>().material.EnableKeyword ("_EMISSION");
             //Debug.Log(part.collider.gameObject.name);
         }
-        
 
-        if (Target != null) {
+        if (Target != null) { //When aiming at a target
+
+
             //Calculate target direction vector
             target_vector = Target.transform.position - this.transform.position;
 
@@ -243,8 +245,8 @@ public class Player_Slash_Control : MonoBehaviour {
 
             CM_slashing_cam.Follow = null;
             //Dash in front of the enemy
-            Tween myTween = this.transform.DOMove (Target.transform.position + dash_vector*dash_deflected_offset, dash_duration).SetUpdate(true);
-            yield return myTween.WaitForCompletion();
+            Tween myTween = this.transform.DOMove (Target.transform.position + dash_vector * dash_deflected_offset, (target_vector.magnitude+dash_deflected_offset)/dash_speed).SetUpdate (true);//TODO actually calculate the dash duration based on dash speed
+            yield return myTween.WaitForCompletion ();
 
             //Play slash animation
             player_animator.SetTrigger ("Unleash");
@@ -254,18 +256,14 @@ public class Player_Slash_Control : MonoBehaviour {
                 enemy_script = Target.GetComponent<Enemy_AI_Control> ();
                 if (enemy_script.Attack_charging) {
                     //Target.SendMessage ("ApplyDamage", slash_damage);
-                    foreach(RaycastHit part in bodyparts_hits )
-                    {
-                        Debug.Log(part.collider.gameObject.name);
-                        if(!part.collider.gameObject.GetComponent<Bodypart_Damage_Manager>().isSteel)
-                        {
+                    foreach (RaycastHit part in bodyparts_hits) {
+                        Debug.Log (part.collider.gameObject.name);
+                        if (!part.collider.gameObject.GetComponent<Bodypart_Damage_Manager> ().isSteel) {
                             part.collider.gameObject.SendMessage ("ApplyDamage", slash_damage);
-                            Debug.Log("Damage");
-                        }
-                        else
-                        {
+                            Debug.Log ("Damage");
+                        } else {
                             deflected = true;
-                            Debug.Log("Steel");
+                            Debug.Log ("Steel");
                             break;
                         }
                         //part.collider.GetComponentInChildren<MeshRenderer>().material.EnableKeyword ("_EMISSION");
@@ -274,96 +272,86 @@ public class Player_Slash_Control : MonoBehaviour {
                     deflected = true;
                 }
             }
-            if(!deflected)
-            {
+            if (!deflected) {
                 //Not deflected
                 dash_vector.Normalize ();
                 dash_vector *= dash_offset;
-                myTween = this.transform.DOMove (Target.transform.position + dash_vector, dash_duration).SetUpdate(true);
-                yield return myTween.WaitForCompletion();
-            }
-            else
-            {
+                target_vector = Target.transform.position - this.transform.position;
+                myTween = this.transform.DOMove (Target.transform.position + dash_vector, (target_vector+dash_vector).magnitude/dash_speed).SetUpdate (true);
+                yield return myTween.WaitForCompletion ();
+            } else {
                 //Deflected
                 player_animator.SetTrigger ("Deflected");
             }
-
-
-            yield return slash_wait;
-            CM_slashing_cam.Follow = this.gameObject.transform;
-            Time.timeScale = 1f;
-
-            //Reset Target
-            //target_material.DisableKeyword("_EMISSION");
-            target_material = null;
-            Target = null;
-
-            if (Input.GetButton ("Charge")) 
-            {
-                EnterAiming ();
-            } 
-            else 
-            {
-                CM_slashing_cam.gameObject.SetActive (false);
-                CM_aiming_cam.gameObject.SetActive (false);
-                CM_topdown_cam.gameObject.SetActive (true);
-                topdown_locomotion.enabled = true;
-                thirdperson_locomotion.enabled = false;
-                player_animator.SetTrigger ("Draw");
-            }
-            //Reset Camera to topdown
-
         }
+        else{ //When aiming at no targets
+            //Play slash animation
+            player_animator.SetTrigger ("Unleash");
+        }
+        yield return slash_wait;
+        CM_slashing_cam.Follow = this.gameObject.transform;
+        Time.timeScale = 1f;
+
+        //Reset Target
+        //target_material.DisableKeyword("_EMISSION");
+        target_material = null;
+        Target = null;
+
+        if (Input.GetButton ("Charge")) {
+            EnterAiming ();
+        } else {
+            CancelSlash ();
+        }
+        //Reset Camera to topdown
+        
     }
 
-    IEnumerator StartDodge()
-    {
+    IEnumerator StartDodge () {
         topdown_locomotion.Can_control = false;
         thirdperson_locomotion.Can_control = false;
 
-        dodge_direction.x = Input.GetAxis("Horizontal");
-        dodge_direction.z = Input.GetAxis("Vertical");
-        if(dodge_direction.magnitude<0.1)
-        {
+        dodge_direction.x = Input.GetAxis ("Horizontal");
+        dodge_direction.z = Input.GetAxis ("Vertical");
+        if (dodge_direction.magnitude < 0.1) {
             dodge_direction = -this.transform.forward;
         }
-        dodge_direction.Normalize();
-        player_animator.SetFloat("Input_X_relative",Vector3.Dot(dodge_direction,this.transform.forward));
-        player_animator.SetFloat("Input_Y_relative",Vector3.Dot(dodge_direction,this.transform.right));
-        player_animator.SetTrigger("Dodge");
-        Tween myTween = this.transform.DOMove(this.transform.position+dodge_direction*dodge_distance,dodge_duration);
-        yield return myTween.WaitForCompletion();
+        dodge_direction.Normalize ();
+        player_animator.SetFloat ("Input_X_relative", Vector3.Dot (dodge_direction, this.transform.forward));
+        player_animator.SetFloat ("Input_Y_relative", Vector3.Dot (dodge_direction, this.transform.right));
+        player_animator.SetTrigger ("Dodge");
+        Tween myTween = this.transform.DOMove (this.transform.position + dodge_direction * dodge_distance, dodge_duration);
+        yield return myTween.WaitForCompletion ();
 
         topdown_locomotion.Can_control = true;
         thirdperson_locomotion.Can_control = true;
     }
 
-    IEnumerator StartNormalAttack()
-    {
+    IEnumerator StartNormalAttack () {
         topdown_locomotion.Can_control = false;
         thirdperson_locomotion.Can_control = false;
 
-        player_animator.SetTrigger("Normal_attack");
-        yield return new WaitForSeconds(normal_attack_duration); //TODO remove the "new"
+        player_animator.SetTrigger ("Normal_attack");
+        yield return new WaitForSeconds (normal_attack_duration); //TODO remove the "new"
 
         topdown_locomotion.Can_control = true;
         thirdperson_locomotion.Can_control = true;
     }
 
-    public void ReduceSharpness(bool isSteel)
-    {
-        if(isSteel)
-        {
+    public void ReduceSharpness (bool isSteel) {
+        if (isSteel) {
             //Hit steel
-            Sharpness-=steel_sharpness_damage;
-            player_animator.SetTrigger("Deflected");
-        }
-        else
-        {
+            Sharpness -= steel_sharpness_damage;
+            player_animator.SetTrigger ("Deflected");
+        } else {
             //Hit flesh
-            Sharpness-=flesh_sharpness_damage;
+            Sharpness -= flesh_sharpness_damage;
         }
-        Mathf.Clamp(Sharpness,0,max_sharpness);
-        sharpness_UI_script.UpdateSharpness(Sharpness);
+        Mathf.Clamp (Sharpness, 0, max_sharpness);
+        sharpness_UI_script.UpdateSharpness (Sharpness);
+    }
+
+    private void RechargeSharpness () {
+        Sharpness = max_sharpness;
+        sharpness_UI_script.UpdateSharpness (Sharpness);
     }
 }

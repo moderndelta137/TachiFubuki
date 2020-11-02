@@ -7,7 +7,7 @@ public class Enemy_Animation_Event_Courier : MonoBehaviour
     private Enemy_AI_Control enemy_ai_control;
 
     // Start is called before the first frame update
-    void Start()
+    private void Awake () 
     {
         enemy_ai_control = this.GetComponentInParent<Enemy_AI_Control>();
     }
