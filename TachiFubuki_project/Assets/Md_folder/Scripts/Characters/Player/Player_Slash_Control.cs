@@ -23,7 +23,9 @@ public class Player_Slash_Control : MonoBehaviour {
     [SerializeField] private CinemachineFreeLook CM_slashing_cam = null;
     [SerializeField] private float slash_time_scale = 1;
     public GameObject Target; //Will change to enemy script
-    [SerializeField] private Material target_material = null;
+    //private Material target_material = null;
+    private QuickOutline[] target_outlines;
+    private QuickOutline target_outline;
     private int aim_layerMask;
     private RaycastHit aim_hit;
     [SerializeField] private float aim_cast_radius = 0;
@@ -131,8 +133,7 @@ public class Player_Slash_Control : MonoBehaviour {
     private void CancelSlash () {
         if (Target != null) {
             //Reset Target
-            //target_material.DisableKeyword("_EMISSION");
-            target_material = null;
+            ToggleTargetOutline(false);
             Target = null;
         }
 
@@ -173,19 +174,31 @@ public class Player_Slash_Control : MonoBehaviour {
         Physics.SphereCast (this.transform.position, aim_cast_radius, main_cam.transform.forward, out aim_hit, aim_cast_distance, aim_layerMask);
         if (aim_hit.transform != null) {
             if (Target != aim_hit.transform.gameObject) {
-                //To be removed!!!!
-                if (target_material != null)
-                    target_material.DisableKeyword ("_EMISSION");
+                ToggleTargetOutline(false);
                 Target = aim_hit.transform.gameObject;
-                target_material = Target.GetComponentInChildren<SkinnedMeshRenderer> ().material;
-                target_material.EnableKeyword ("_EMISSION");
+                ToggleTargetOutline(true);
             }
         } else {
             if (Target != null) {
-                target_material.DisableKeyword ("_EMISSION");
-                target_material = null;
+                Target = aim_hit.transform.gameObject;
+                ToggleTargetOutline(true);
             }
+            //ToggleTargetOutline(false);
             Target = null;
+        }
+    }
+
+    void ToggleTargetOutline(bool state){
+        if(Target!=null)
+        {
+            target_outlines = Target.GetComponentsInChildren<QuickOutline>();
+            if(target_outlines != null)
+            {
+                foreach(QuickOutline script in target_outlines)
+                {
+                    script.enabled = state;
+                }
+            }
         }
     }
 
@@ -266,7 +279,6 @@ public class Player_Slash_Control : MonoBehaviour {
                             Debug.Log ("Steel");
                             break;
                         }
-                        //part.collider.GetComponentInChildren<MeshRenderer>().material.EnableKeyword ("_EMISSION");
                     }
                 } else {
                     deflected = true;
@@ -293,8 +305,7 @@ public class Player_Slash_Control : MonoBehaviour {
         Time.timeScale = 1f;
 
         //Reset Target
-        //target_material.DisableKeyword("_EMISSION");
-        target_material = null;
+        ToggleTargetOutline(false);
         Target = null;
 
         if (Input.GetButton ("Charge")) {
